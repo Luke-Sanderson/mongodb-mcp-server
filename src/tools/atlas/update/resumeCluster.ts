@@ -15,16 +15,6 @@ export class ResumeClusterTool extends AtlasToolBase {
     };
 
     protected async execute({ projectId, clusterName }: ToolArgs<typeof this.argsShape>): Promise<CallToolResult> {
-        const cluster = await this.apiClient.getCluster({
-            params: { path: { groupId: projectId, clusterName } },
-        });
-
-        if (cluster.paused !== true) {
-            return {
-                content: [{ type: "text", text: `Cluster "${clusterName}" is not paused.` }],
-            };
-        }
-
         await this.apiClient.updateCluster({
             params: { path: { groupId: projectId, clusterName } },
             body: { paused: false } as unknown as ClusterDescription20240805,
