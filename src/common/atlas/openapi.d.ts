@@ -191,7 +191,11 @@ export interface paths {
         delete: operations["deleteGroupCluster"];
         options?: never;
         head?: never;
-        patch?: never;
+        /**
+         * Update One Cluster in One Project
+         * @description Updates the details for one cluster in the specified project. Clusters contain a group of hosts that maintain the same data set. This resource can update clusters with asymmetrically-sized shards. To update a cluster's termination protection, the requesting Service Account or API Key must have the Project Owner role. For all other updates, the requesting Service Account or API Key must have the Project Cluster Manager role or the Project Replica Set Manager role. You can't modify a paused cluster (`paused : true`). You must call this endpoint to set `paused : false`. After this endpoint responds with `paused : false`, you can call it again with the changes you want to make to the cluster. This feature is not available for serverless clusters. Deprecated versions: v2-{2024-08-05}, v2-{2023-02-01}, v2-{2023-01-01}
+         */
+        patch: operations["updateGroupCluster"];
         trace?: never;
     };
     "/api/atlas/v2/groups/{groupId}/clusters/{clusterName}/performanceAdvisor/dropIndexSuggestions": {
@@ -1425,6 +1429,17 @@ export interface components {
              */
             minInstanceSize?: "M10" | "M20" | "M30" | "M40" | "M50" | "M60" | "M80" | "M90" | "M200" | "R40" | "R50" | "R60" | "R80" | "R200" | "R300" | "R400" | "M60_NVME" | "M80_NVME" | "M200_NVME" | "M300_NVME" | "M400_NVME" | "M600_NVME";
         };
+        /** @description Azure-specific configuration for the connection. */
+        AzureConnection: {
+            /** @description List of one or more Uniform Resource Locators (URLs) that point to API sub-resources, related API resources, or both. RFC 5988 outlines these relationships. */
+            readonly links?: components["schemas"]["Link"][];
+            /** @description Azure region where the storage account is located. */
+            region?: string;
+            /** @description Unique ID of the Azure Service Principal that has access to the storage account. */
+            servicePrincipalId?: string;
+            /** @description Name of the Azure Storage Account to connect to. */
+            storageAccountName?: string;
+        };
         AzureCreateDataProcessRegionView: Omit<components["schemas"]["CreateDataProcessRegionView"], "cloudProvider"> & {
             /**
              * @description Human-readable label that identifies the geographic location of the region where you wish to store your archived data.
@@ -1628,255 +1643,6 @@ export interface components {
              * @enum {string}
              */
             readPreference?: "PRIMARY" | "SECONDARY" | "ANALYTICS";
-        };
-        BillingInvoice: {
-            /**
-             * Format: int64
-             * @description Sum of services that the specified organization consumed in the period covered in this invoice. This parameter expresses its value in cents (100ths of one US Dollar).
-             */
-            readonly amountBilledCents?: number;
-            /**
-             * Format: int64
-             * @description Sum that the specified organization paid toward this invoice. This parameter expresses its value in cents (100ths of one US Dollar).
-             */
-            readonly amountPaidCents?: number;
-            /**
-             * Format: date-time
-             * @description Date and time when MongoDB Cloud created this invoice. This parameter expresses its value in the ISO 8601 timestamp format in UTC.
-             */
-            readonly created?: string;
-            /**
-             * Format: int64
-             * @description Sum that MongoDB credited the specified organization toward this invoice. This parameter expresses its value in cents (100ths of one US Dollar).
-             */
-            readonly creditsCents?: number;
-            /**
-             * Format: date-time
-             * @description Date and time when MongoDB Cloud finished the billing period that this invoice covers. This parameter expresses its value in the ISO 8601 timestamp format in UTC.
-             */
-            readonly endDate?: string;
-            /**
-             * @description Unique 24-hexadecimal digit string that identifies the invoice submitted to the specified organization. Charges typically post the next day.
-             * @example 32b6e34b3d91647abb20e7b8
-             */
-            readonly id?: string;
-            /** @description List that contains individual services included in this invoice. */
-            readonly lineItems?: components["schemas"]["InvoiceLineItem"][];
-            /** @description List that contains the invoices for organizations linked to the paying organization. */
-            readonly linkedInvoices?: components["schemas"]["BillingInvoice"][];
-            /** @description List of one or more Uniform Resource Locators (URLs) that point to API sub-resources, related API resources, or both. RFC 5988 outlines these relationships. */
-            readonly links?: components["schemas"]["Link"][];
-            /**
-             * @description Unique 24-hexadecimal digit string that identifies the organization charged for services consumed from MongoDB Cloud.
-             * @example 32b6e34b3d91647abb20e7b8
-             */
-            readonly orgId?: string;
-            /** @description List that contains funds transferred to MongoDB to cover the specified service noted in this invoice. */
-            readonly payments?: components["schemas"]["BillingPayment"][];
-            /** @description List that contains payments that MongoDB returned to the organization for this invoice. */
-            readonly refunds?: components["schemas"]["BillingRefund"][];
-            /**
-             * Format: int64
-             * @description Sum of sales tax applied to this invoice. This parameter expresses its value in cents (100ths of one US Dollar).
-             */
-            readonly salesTaxCents?: number;
-            /**
-             * Format: date-time
-             * @description Date and time when MongoDB Cloud began the billing period that this invoice covers. This parameter expresses its value in the ISO 8601 timestamp format in UTC.
-             */
-            readonly startDate?: string;
-            /**
-             * Format: int64
-             * @description Sum that the specified organization owed to MongoDB when MongoDB issued this invoice. This parameter expresses its value in US Dollars.
-             */
-            readonly startingBalanceCents?: number;
-            /**
-             * @description Phase of payment processing in which this invoice exists when you made this request. Accepted phases include:
-             *
-             *     - `CLOSED`: MongoDB finalized all charges in the billing cycle but has yet to charge the customer.
-             *     - `FAILED`: MongoDB attempted to charge the provided credit card but charge for that amount failed.
-             *     - `FORGIVEN`: Customer initiated payment which MongoDB later forgave.
-             *     - `FREE`: All charges totalled zero so the customer won't be charged.
-             *     - `INVOICED`: MongoDB handled these charges using elastic invoicing.
-             *     - `PAID`: MongoDB succeeded in charging the provided credit card.
-             *     - `PENDING`: Invoice includes charges for the current billing cycle.
-             *     - `PREPAID`: Customer has a pre-paid plan so they won't be charged.
-             * @enum {string}
-             */
-            statusName?: "PENDING" | "CLOSED" | "FORGIVEN" | "FAILED" | "PAID" | "FREE" | "PREPAID" | "INVOICED";
-            /**
-             * Format: int64
-             * @description Sum of all positive invoice line items contained in this invoice. This parameter expresses its value in cents (100ths of one US Dollar).
-             */
-            readonly subtotalCents?: number;
-            /**
-             * Format: date-time
-             * @description Date and time when MongoDB Cloud last updated the value of this payment. This parameter expresses its value in the ISO 8601 timestamp format in UTC.
-             */
-            readonly updated?: string;
-        };
-        BillingInvoiceMetadata: {
-            /**
-             * Format: int64
-             * @description Sum of services that the specified organization consumed in the period covered in this invoice. This parameter expresses its value in cents (100ths of one US Dollar).
-             */
-            readonly amountBilledCents?: number;
-            /**
-             * Format: int64
-             * @description Sum that the specified organization paid toward this invoice. This parameter expresses its value in cents (100ths of one US Dollar).
-             */
-            readonly amountPaidCents?: number;
-            /**
-             * Format: date-time
-             * @description Date and time when MongoDB Cloud created this invoice. This parameter expresses its value in the ISO 8601 timestamp format in UTC.
-             */
-            readonly created?: string;
-            /**
-             * Format: int64
-             * @description Sum that MongoDB credited the specified organization toward this invoice. This parameter expresses its value in cents (100ths of one US Dollar).
-             */
-            readonly creditsCents?: number;
-            /**
-             * Format: date-time
-             * @description Date and time when MongoDB Cloud finished the billing period that this invoice covers. This parameter expresses its value in the ISO 8601 timestamp format in UTC.
-             */
-            readonly endDate?: string;
-            /**
-             * @description Unique 24-hexadecimal digit string that identifies the invoice submitted to the specified organization. Charges typically post the next day.
-             * @example 32b6e34b3d91647abb20e7b8
-             */
-            readonly id?: string;
-            /** @description List that contains the invoices for organizations linked to the paying organization. */
-            readonly linkedInvoices?: components["schemas"]["BillingInvoiceMetadata"][];
-            /** @description List of one or more Uniform Resource Locators (URLs) that point to API sub-resources, related API resources, or both. RFC 5988 outlines these relationships. */
-            readonly links?: components["schemas"]["Link"][];
-            /**
-             * @description Unique 24-hexadecimal digit string that identifies the organization charged for services consumed from MongoDB Cloud.
-             * @example 32b6e34b3d91647abb20e7b8
-             */
-            readonly orgId?: string;
-            /**
-             * Format: int64
-             * @description Sum of sales tax applied to this invoice. This parameter expresses its value in cents (100ths of one US Dollar).
-             */
-            readonly salesTaxCents?: number;
-            /**
-             * Format: date-time
-             * @description Date and time when MongoDB Cloud began the billing period that this invoice covers. This parameter expresses its value in the ISO 8601 timestamp format in UTC.
-             */
-            readonly startDate?: string;
-            /**
-             * Format: int64
-             * @description Sum that the specified organization owed to MongoDB when MongoDB issued this invoice. This parameter expresses its value in US Dollars.
-             */
-            readonly startingBalanceCents?: number;
-            /**
-             * @description Phase of payment processing in which this invoice exists when you made this request. Accepted phases include:
-             *
-             *     - `CLOSED`: MongoDB finalized all charges in the billing cycle but has yet to charge the customer.
-             *     - `FAILED`: MongoDB attempted to charge the provided credit card but charge for that amount failed.
-             *     - `FORGIVEN`: Customer initiated payment which MongoDB later forgave.
-             *     - `FREE`: All charges totalled zero so the customer won't be charged.
-             *     - `INVOICED`: MongoDB handled these charges using elastic invoicing.
-             *     - `PAID`: MongoDB succeeded in charging the provided credit card.
-             *     - `PENDING`: Invoice includes charges for the current billing cycle.
-             *     - `PREPAID`: Customer has a pre-paid plan so they won't be charged.
-             * @enum {string}
-             */
-            statusName?: "PENDING" | "CLOSED" | "FORGIVEN" | "FAILED" | "PAID" | "FREE" | "PREPAID" | "INVOICED";
-            /**
-             * Format: int64
-             * @description Sum of all positive invoice line items contained in this invoice. This parameter expresses its value in cents (100ths of one US Dollar).
-             */
-            readonly subtotalCents?: number;
-            /**
-             * Format: date-time
-             * @description Date and time when MongoDB Cloud last updated the value of this payment. This parameter expresses its value in the ISO 8601 timestamp format in UTC.
-             */
-            readonly updated?: string;
-        };
-        /**
-         * Payment
-         * @description Funds transferred to MongoDB to cover the specified service in this invoice.
-         */
-        BillingPayment: {
-            /**
-             * Format: int64
-             * @description Sum of services that the specified organization consumed in the period covered in this invoice. This parameter expresses its value in cents (100ths of one US Dollar).
-             */
-            readonly amountBilledCents?: number;
-            /**
-             * Format: int64
-             * @description Sum that the specified organization paid toward the associated invoice. This parameter expresses its value in cents (100ths of one US Dollar).
-             */
-            readonly amountPaidCents?: number;
-            /**
-             * Format: date-time
-             * @description Date and time when the customer made this payment attempt. This parameter expresses its value in the ISO 8601 timestamp format in UTC.
-             */
-            readonly created?: string;
-            /** @description The currency in which payment was paid. This parameter expresses its value in 3-letter ISO 4217 currency code. */
-            readonly currency?: string;
-            /**
-             * @description Unique 24-hexadecimal digit string that identifies this payment toward the associated invoice.
-             * @example 32b6e34b3d91647abb20e7b8
-             */
-            readonly id?: string;
-            /**
-             * Format: int64
-             * @description Sum of sales tax applied to this invoice. This parameter expresses its value in cents (100ths of one US Dollar).
-             */
-            readonly salesTaxCents?: number;
-            /**
-             * @description Phase of payment processing for the associated invoice when you made this request. These phases include:
-             *
-             *     - `CANCELLED`: Customer or MongoDB cancelled the payment.
-             *     - `ERROR`: Issue arose when attempting to complete payment.
-             *     - `FAILED`: MongoDB tried to charge the credit card without success.
-             *     - `FAILED_AUTHENTICATION`: Strong Customer Authentication has failed. Confirm that your payment method is authenticated.
-             *     - `FORGIVEN`: Customer initiated payment which MongoDB later forgave.
-             *     - `INVOICED`: MongoDB issued an invoice that included this line item.
-             *     - `NEW`: Customer provided a method of payment, but MongoDB hasn't tried to charge the credit card.
-             *     - `PAID`: Customer submitted a successful payment.
-             *     - `PARTIAL_PAID`: Customer paid for part of this line item.
-             * @enum {string}
-             */
-            statusName?: "NEW" | "FORGIVEN" | "FAILED" | "PAID" | "PARTIAL_PAID" | "CANCELLED" | "INVOICED" | "FAILED_AUTHENTICATION" | "PROCESSING" | "PENDING_REVERSAL" | "REFUNDED";
-            /**
-             * Format: int64
-             * @description Sum of all positive invoice line items contained in this invoice. This parameter expresses its value in cents (100ths of one US Dollar).
-             */
-            readonly subtotalCents?: number;
-            /** @description The unit price applied to `amountBilledCents` to compute total payment amount. This value is represented as a decimal string. */
-            readonly unitPrice?: string;
-            /**
-             * Format: date-time
-             * @description Date and time when the customer made an update to this payment attempt. This parameter expresses its value in the ISO 8601 timestamp format in UTC.
-             */
-            readonly updated?: string;
-        };
-        /**
-         * Refund
-         * @description One payment that MongoDB returned to the organization for this invoice.
-         */
-        BillingRefund: {
-            /**
-             * Format: int64
-             * @description Sum of the funds returned to the specified organization expressed in cents (100th of US Dollar).
-             */
-            readonly amountCents?: number;
-            /**
-             * Format: date-time
-             * @description Date and time when MongoDB Cloud created this refund. This parameter expresses its value in the ISO 8601 timestamp format in UTC.
-             */
-            readonly created?: string;
-            /**
-             * @description Unique 24-hexadecimal digit string that identifies the payment that the organization had made.
-             * @example 32b6e34b3d91647abb20e7b8
-             */
-            readonly paymentId?: string;
-            /** @description Justification that MongoDB accepted to return funds to the organization. */
-            readonly reason?: string;
         };
         /** @description Settings that describe the clusters in each project that the API key is authorized to view. */
         CloudCluster: {
@@ -3003,22 +2769,22 @@ export interface components {
         DailyScheduleView: Omit<WithRequired<components["schemas"]["OnlineArchiveSchedule"], "type">, "type"> & {
             /**
              * Format: int32
-             * @description Hour of the day when the scheduled window to run one online archive ends.
+             * @description Hour of the day when the scheduled window to run one online archive ends. This field uses the UTC time zone. The window must have a duration of at least two hours. If the end time is before or equal to the start time, the window extends to the next day.
              */
             endHour?: number;
             /**
              * Format: int32
-             * @description Minute of the hour when the scheduled window to run one online archive ends.
+             * @description Minute of the hour when the scheduled window to run one online archive ends. This field uses the UTC time zone. The window must have a duration of at least two hours. If the end time is before or equal to the start time, the window extends to the next day.
              */
             endMinute?: number;
             /**
              * Format: int32
-             * @description Hour of the day when the when the scheduled window to run one online archive starts.
+             * @description Hour of the day when the scheduled window to run one online archive starts. This field uses the UTC time zone.
              */
             startHour?: number;
             /**
              * Format: int32
-             * @description Minute of the hour when the scheduled window to run one online archive starts.
+             * @description Minute of the hour when the scheduled window to run one online archive starts. This field uses the UTC time zone.
              */
             startMinute?: number;
         } & {
@@ -3585,7 +3351,7 @@ export interface components {
              */
             readonly created: string;
             /** @description Incident that triggered this alert. */
-            readonly eventTypeName: ("CREDIT_CARD_ABOUT_TO_EXPIRE" | "PENDING_INVOICE_OVER_THRESHOLD" | "DAILY_BILL_OVER_THRESHOLD") | ("CPS_SNAPSHOT_STARTED" | "CPS_SNAPSHOT_SUCCESSFUL" | "CPS_SNAPSHOT_FAILED" | "CPS_CONCURRENT_SNAPSHOT_FAILED_WILL_RETRY" | "CPS_SNAPSHOT_BEHIND" | "CPS_COPY_SNAPSHOT_STARTED" | "CPS_COPY_SNAPSHOT_FAILED" | "CPS_COPY_SNAPSHOT_FAILED_WILL_RETRY" | "CPS_COPY_SNAPSHOT_SUCCESSFUL" | "CPS_PREV_SNAPSHOT_OLD" | "CPS_SNAPSHOT_FALLBACK_SUCCESSFUL" | "CPS_SNAPSHOT_FALLBACK_FAILED" | "CPS_RESTORE_SUCCESSFUL" | "CPS_EXPORT_SUCCESSFUL" | "CPS_RESTORE_FAILED" | "CPS_EXPORT_FAILED" | "CPS_COLLECTION_RESTORE_SUCCESSFUL" | "CPS_COLLECTION_RESTORE_FAILED" | "CPS_COLLECTION_RESTORE_PARTIAL_SUCCESS" | "CPS_COLLECTION_RESTORE_CANCELED" | "CPS_AUTO_EXPORT_FAILED" | "CPS_SNAPSHOT_DOWNLOAD_REQUEST_FAILED" | "CPS_OPLOG_BEHIND" | "CPS_OPLOG_CAUGHT_UP") | ("AWS_ENCRYPTION_KEY_NEEDS_ROTATION" | "AZURE_ENCRYPTION_KEY_NEEDS_ROTATION" | "GCP_ENCRYPTION_KEY_NEEDS_ROTATION" | "AWS_ENCRYPTION_KEY_INVALID" | "AZURE_ENCRYPTION_KEY_INVALID" | "GCP_ENCRYPTION_KEY_INVALID") | ("FTS_INDEX_DELETION_FAILED" | "FTS_INDEX_BUILD_COMPLETE" | "FTS_INDEX_BUILD_FAILED" | "FTS_INDEX_STALE" | "FTS_INDEXES_RESTORE_FAILED" | "FTS_INDEXES_SYNONYM_MAPPING_INVALID") | ("USERS_WITHOUT_MULTI_FACTOR_AUTH" | "ENCRYPTION_AT_REST_KMS_NETWORK_ACCESS_DENIED" | "ENCRYPTION_AT_REST_CONFIG_NO_LONGER_VALID" | "GROUP_SERVICE_ACCOUNT_SECRETS_EXPIRING" | "GROUP_SERVICE_ACCOUNT_SECRETS_EXPIRED" | "ACTIVE_LEGACY_TLS_CONNECTIONS") | "MONGOTUNE_ALERT" | ("CLUSTER_INSTANCE_STOP_START" | "CLUSTER_INSTANCE_RESYNC_REQUESTED" | "CLUSTER_INSTANCE_UPDATE_REQUESTED" | "SAMPLE_DATASET_LOAD_REQUESTED" | "TENANT_UPGRADE_TO_SERVERLESS_SUCCESSFUL" | "TENANT_UPGRADE_TO_SERVERLESS_FAILED" | "NETWORK_PERMISSION_ENTRY_ADDED" | "NETWORK_PERMISSION_ENTRY_REMOVED" | "NETWORK_PERMISSION_ENTRY_UPDATED" | "CLUSTER_BLOCK_WRITE" | "CLUSTER_UNBLOCK_WRITE") | ("MAINTENANCE_IN_ADVANCED" | "MAINTENANCE_AUTO_DEFERRED" | "MAINTENANCE_STARTED" | "MAINTENANCE_COMPLETED" | "MAINTENANCE_NO_LONGER_NEEDED") | ("NDS_X509_USER_AUTHENTICATION_CUSTOMER_CA_EXPIRATION_CHECK" | "NDS_X509_USER_AUTHENTICATION_CUSTOMER_CRL_EXPIRATION_CHECK" | "NDS_X509_USER_AUTHENTICATION_MANAGED_USER_CERTS_EXPIRATION_CHECK") | ("ONLINE_ARCHIVE_INSUFFICIENT_INDEXES_CHECK" | "ONLINE_ARCHIVE_MAX_CONSECUTIVE_OFFLOAD_WINDOWS_CHECK") | "OUTSIDE_SERVERLESS_METRIC_THRESHOLD" | "OUTSIDE_FLEX_METRIC_THRESHOLD" | ("JOINED_GROUP" | "REMOVED_FROM_GROUP" | "USER_ROLES_CHANGED_AUDIT") | ("TAGS_MODIFIED" | "CLUSTER_TAGS_MODIFIED" | "GROUP_TAGS_MODIFIED") | ("STREAM_PROCESSOR_STATE_IS_FAILED" | "OUTSIDE_STREAM_PROCESSOR_METRIC_THRESHOLD") | ("COMPUTE_AUTO_SCALE_INITIATED_BASE" | "COMPUTE_AUTO_SCALE_INITIATED_ANALYTICS" | "COMPUTE_AUTO_SCALE_SCALE_DOWN_FAIL_BASE" | "COMPUTE_AUTO_SCALE_SCALE_DOWN_FAIL_ANALYTICS" | "COMPUTE_AUTO_SCALE_MAX_INSTANCE_SIZE_FAIL_BASE" | "COMPUTE_AUTO_SCALE_MAX_INSTANCE_SIZE_FAIL_ANALYTICS" | "COMPUTE_AUTO_SCALE_OPLOG_FAIL_BASE" | "COMPUTE_AUTO_SCALE_OPLOG_FAIL_ANALYTICS" | "DISK_AUTO_SCALE_INITIATED" | "DISK_AUTO_SCALE_MAX_DISK_SIZE_FAIL" | "DISK_AUTO_SCALE_OPLOG_FAIL" | "PREDICTIVE_COMPUTE_AUTO_SCALE_INITIATED_BASE" | "PREDICTIVE_COMPUTE_AUTO_SCALE_MAX_INSTANCE_SIZE_FAIL_BASE" | "PREDICTIVE_COMPUTE_AUTO_SCALE_OPLOG_FAIL_BASE" | "CLUSTER_AUTO_SHARDING_INITIATED") | ("CPS_DATA_PROTECTION_ENABLE_REQUESTED" | "CPS_DATA_PROTECTION_ENABLED" | "CPS_DATA_PROTECTION_UPDATE_REQUESTED" | "CPS_DATA_PROTECTION_UPDATED" | "CPS_DATA_PROTECTION_DISABLE_REQUESTED" | "CPS_DATA_PROTECTION_DISABLED" | "CPS_DATA_PROTECTION_APPROVED_FOR_DISABLEMENT") | "RESOURCE_POLICY_VIOLATED" | ("HOST_DOWN" | "HOST_HAS_INDEX_SUGGESTIONS" | "HOST_MONGOT_CRASHING_OOM" | "HOST_MONGOT_STOP_REPLICATION" | "HOST_MONGOT_APPROACHING_STOP_REPLICATION" | "HOST_MONGOT_PAUSE_INITIAL_SYNC" | "HOST_SEARCH_NODE_INDEX_FAILED" | "HOST_EXTERNAL_LOG_SINK_EXPORT_DOWN" | "HOST_NOT_ENOUGH_DISK_SPACE" | "SSH_KEY_NDS_HOST_ACCESS_REQUESTED" | "SSH_KEY_NDS_HOST_ACCESS_REFRESHED" | "PUSH_BASED_LOG_EXPORT_STOPPED" | "PUSH_BASED_LOG_EXPORT_DROPPED_LOG" | "HOST_VERSION_BEHIND" | "VERSION_BEHIND" | "HOST_EXPOSED" | "HOST_SSL_CERTIFICATE_STALE" | "HOST_SECURITY_CHECKUP_NOT_MET" | "ALERT_HOST_SSH_SESSION_STARTED" | "PROFILER_CONFIGURED_TOO_WIDELY");
+            readonly eventTypeName: ("CREDIT_CARD_ABOUT_TO_EXPIRE" | "PENDING_INVOICE_OVER_THRESHOLD" | "DAILY_BILL_OVER_THRESHOLD" | "DAILY_BILLING_CHANGE_OVER_THRESHOLD" | "WEEKLY_BILLING_CHANGE_OVER_THRESHOLD" | "MONTHLY_BILLING_CHANGE_OVER_THRESHOLD") | ("CPS_SNAPSHOT_STARTED" | "CPS_SNAPSHOT_SUCCESSFUL" | "CPS_SNAPSHOT_FAILED" | "CPS_CONCURRENT_SNAPSHOT_FAILED_WILL_RETRY" | "CPS_SNAPSHOT_BEHIND" | "CPS_COPY_SNAPSHOT_STARTED" | "CPS_COPY_SNAPSHOT_FAILED" | "CPS_COPY_SNAPSHOT_FAILED_WILL_RETRY" | "CPS_COPY_SNAPSHOT_SUCCESSFUL" | "CPS_PREV_SNAPSHOT_OLD" | "CPS_SNAPSHOT_FALLBACK_SUCCESSFUL" | "CPS_SNAPSHOT_FALLBACK_FAILED" | "CPS_RESTORE_SUCCESSFUL" | "CPS_EXPORT_SUCCESSFUL" | "CPS_RESTORE_FAILED" | "CPS_EXPORT_FAILED" | "CPS_COLLECTION_RESTORE_SUCCESSFUL" | "CPS_COLLECTION_RESTORE_FAILED" | "CPS_COLLECTION_RESTORE_PARTIAL_SUCCESS" | "CPS_COLLECTION_RESTORE_CANCELED" | "CPS_AUTO_EXPORT_FAILED" | "CPS_SNAPSHOT_DOWNLOAD_REQUEST_FAILED" | "CPS_OPLOG_BEHIND" | "CPS_OPLOG_CAUGHT_UP") | ("AWS_ENCRYPTION_KEY_NEEDS_ROTATION" | "AZURE_ENCRYPTION_KEY_NEEDS_ROTATION" | "GCP_ENCRYPTION_KEY_NEEDS_ROTATION" | "AWS_ENCRYPTION_KEY_INVALID" | "AZURE_ENCRYPTION_KEY_INVALID" | "GCP_ENCRYPTION_KEY_INVALID") | ("FTS_INDEX_DELETION_FAILED" | "FTS_INDEX_BUILD_COMPLETE" | "FTS_INDEX_BUILD_FAILED" | "FTS_INDEX_CLEANED_UP" | "FTS_INDEX_STALE" | "FTS_INDEXES_RESTORE_FAILED" | "FTS_INDEXES_SYNONYM_MAPPING_INVALID") | ("USERS_WITHOUT_MULTI_FACTOR_AUTH" | "ENCRYPTION_AT_REST_KMS_NETWORK_ACCESS_DENIED" | "ENCRYPTION_AT_REST_CONFIG_NO_LONGER_VALID" | "GROUP_SERVICE_ACCOUNT_SECRETS_EXPIRING" | "GROUP_SERVICE_ACCOUNT_SECRETS_EXPIRED" | "ACTIVE_LEGACY_TLS_CONNECTIONS") | "MONGOTUNE_ALERT" | ("CLUSTER_INSTANCE_STOP_START" | "CLUSTER_INSTANCE_RESYNC_REQUESTED" | "CLUSTER_INSTANCE_UPDATE_REQUESTED" | "SAMPLE_DATASET_LOAD_REQUESTED" | "TENANT_UPGRADE_TO_SERVERLESS_SUCCESSFUL" | "TENANT_UPGRADE_TO_SERVERLESS_FAILED" | "NETWORK_PERMISSION_ENTRY_ADDED" | "NETWORK_PERMISSION_ENTRY_REMOVED" | "NETWORK_PERMISSION_ENTRY_UPDATED" | "CLUSTER_BLOCK_WRITE" | "CLUSTER_UNBLOCK_WRITE") | ("MAINTENANCE_IN_ADVANCED" | "MAINTENANCE_AUTO_DEFERRED" | "MAINTENANCE_STARTED" | "MAINTENANCE_COMPLETED" | "MAINTENANCE_NO_LONGER_NEEDED") | ("NDS_X509_USER_AUTHENTICATION_CUSTOMER_CA_EXPIRATION_CHECK" | "NDS_X509_USER_AUTHENTICATION_CUSTOMER_CRL_EXPIRATION_CHECK" | "NDS_X509_USER_AUTHENTICATION_MANAGED_USER_CERTS_EXPIRATION_CHECK") | ("ONLINE_ARCHIVE_INSUFFICIENT_INDEXES_CHECK" | "ONLINE_ARCHIVE_MAX_CONSECUTIVE_OFFLOAD_WINDOWS_CHECK") | "OUTSIDE_SERVERLESS_METRIC_THRESHOLD" | "OUTSIDE_FLEX_METRIC_THRESHOLD" | ("JOINED_GROUP" | "REMOVED_FROM_GROUP" | "USER_ROLES_CHANGED_AUDIT") | ("TAGS_MODIFIED" | "CLUSTER_TAGS_MODIFIED" | "GROUP_TAGS_MODIFIED") | ("STREAM_PROCESSOR_STATE_IS_FAILED" | "OUTSIDE_STREAM_PROCESSOR_METRIC_THRESHOLD") | ("COMPUTE_AUTO_SCALE_INITIATED_BASE" | "COMPUTE_AUTO_SCALE_INITIATED_ANALYTICS" | "COMPUTE_AUTO_SCALE_SCALE_DOWN_FAIL_BASE" | "COMPUTE_AUTO_SCALE_SCALE_DOWN_FAIL_ANALYTICS" | "COMPUTE_AUTO_SCALE_MAX_INSTANCE_SIZE_FAIL_BASE" | "COMPUTE_AUTO_SCALE_MAX_INSTANCE_SIZE_FAIL_ANALYTICS" | "COMPUTE_AUTO_SCALE_OPLOG_FAIL_BASE" | "COMPUTE_AUTO_SCALE_OPLOG_FAIL_ANALYTICS" | "DISK_AUTO_SCALE_INITIATED" | "DISK_AUTO_SCALE_MAX_DISK_SIZE_FAIL" | "DISK_AUTO_SCALE_OPLOG_FAIL" | "PREDICTIVE_COMPUTE_AUTO_SCALE_INITIATED_BASE" | "PREDICTIVE_COMPUTE_AUTO_SCALE_MAX_INSTANCE_SIZE_FAIL_BASE" | "PREDICTIVE_COMPUTE_AUTO_SCALE_OPLOG_FAIL_BASE" | "CLUSTER_AUTO_SHARDING_INITIATED" | "COMPUTE_AUTO_SCALE_DOWNSCALE_SKIPPED_FALLBACK_BASE" | "COMPUTE_AUTO_SCALE_DOWNSCALE_SKIPPED_FALLBACK_ANALYTICS") | ("CPS_DATA_PROTECTION_ENABLE_REQUESTED" | "CPS_DATA_PROTECTION_ENABLED" | "CPS_DATA_PROTECTION_UPDATE_REQUESTED" | "CPS_DATA_PROTECTION_UPDATED" | "CPS_DATA_PROTECTION_DISABLE_REQUESTED" | "CPS_DATA_PROTECTION_DISABLED" | "CPS_DATA_PROTECTION_APPROVED_FOR_DISABLEMENT") | "RESOURCE_POLICY_VIOLATED" | ("HOST_DOWN" | "HOST_HAS_INDEX_SUGGESTIONS" | "HOST_MONGOT_CRASHING_OOM" | "HOST_MONGOT_STOP_REPLICATION" | "HOST_MONGOT_APPROACHING_STOP_REPLICATION" | "HOST_MONGOT_PAUSE_INITIAL_SYNC" | "HOST_SEARCH_NODE_INDEX_FAILED" | "HOST_EXTERNAL_LOG_SINK_EXPORT_DOWN" | "HOST_NOT_ENOUGH_DISK_SPACE" | "SSH_KEY_NDS_HOST_ACCESS_REQUESTED" | "SSH_KEY_NDS_HOST_ACCESS_REFRESHED" | "PUSH_BASED_LOG_EXPORT_STOPPED" | "PUSH_BASED_LOG_EXPORT_DROPPED_LOG" | "HOST_VERSION_BEHIND" | "VERSION_BEHIND" | "HOST_EXPOSED" | "HOST_SSL_CERTIFICATE_STALE" | "HOST_SECURITY_CHECKUP_NOT_MET" | "ALERT_HOST_SSH_SESSION_STARTED" | "PROFILER_CONFIGURED_TOO_WIDELY");
             /**
              * @description Unique 24-hexadecimal digit string that identifies the project that owns this alert.
              * @example 32b6e34b3d91647abb20e7b8
@@ -4353,7 +4119,7 @@ export interface components {
             /** @description List that contains key-value pairs between 1 to 255 characters in length for tagging and categorizing the project. */
             tags?: components["schemas"]["ResourceTag"][];
             /**
-             * @description Flag that indicates whether to create the project with default alert settings. This setting cannot be updated after project creation.
+             * @description Flag that indicates whether to create the project with default alert settings.
              * @default true
              */
             withDefaultAlertsSettings: boolean;
@@ -4727,87 +4493,6 @@ export interface components {
              */
             type?: "PERIODIC_CPS" | "ON_DEMAND_CPS";
         };
-        /**
-         * Line Item
-         * @description One service included in this invoice.
-         */
-        InvoiceLineItem: {
-            /** @description Human-readable label that identifies the cluster that incurred the charge. */
-            readonly clusterName?: string;
-            /**
-             * Format: date-time
-             * @description Date and time when MongoDB Cloud created this line item. This parameter expresses its value in the ISO 8601 timestamp format in UTC.
-             */
-            readonly created?: string;
-            /**
-             * Format: int64
-             * @description Sum by which MongoDB discounted this line item. MongoDB Cloud expresses this value in cents (100ths of one US Dollar). The resource returns this parameter when a discount applies.
-             */
-            readonly discountCents?: number;
-            /**
-             * Format: date-time
-             * @description Date and time when when MongoDB Cloud finished charging for this line item. This parameter expresses its value in the ISO 8601 timestamp format in UTC.
-             */
-            readonly endDate?: string;
-            /**
-             * @description Unique 24-hexadecimal digit string that identifies the project associated to this line item.
-             * @example 32b6e34b3d91647abb20e7b8
-             */
-            readonly groupId?: string;
-            /** @description Human-readable label that identifies the project. */
-            groupName?: string;
-            /** @description Comment that applies to this line item. */
-            readonly note?: string;
-            /**
-             * Format: float
-             * @description Percentage by which MongoDB discounted this line item. The resource returns this parameter when a discount applies.
-             */
-            readonly percentDiscount?: number;
-            /**
-             * Format: double
-             * @description Number of units included for the line item. These can be expressions of storage (GB), time (hours), or other units.
-             */
-            readonly quantity?: number;
-            /** @description Human-readable description of the service that this line item provided. This Stock Keeping Unit (SKU) could be the instance type, a support charge, advanced security, or another service. */
-            readonly sku?: string;
-            /**
-             * Format: date-time
-             * @description Date and time when MongoDB Cloud began charging for this line item. This parameter expresses its value in the ISO 8601 timestamp format in UTC.
-             */
-            readonly startDate?: string;
-            /** @description Human-readable label that identifies the Atlas App Services application associated with this line item. */
-            readonly stitchAppName?: string;
-            /** @description A map of key-value pairs corresponding to the tags associated with the line item resource. */
-            readonly tags?: {
-                [key: string]: string[];
-            };
-            /**
-             * Format: double
-             * @description Lower bound for usage amount range in current SKU tier.
-             *
-             *     **NOTE**: `lineItems[n].tierLowerBound` appears only if your `lineItems[n].sku` is tiered.
-             */
-            readonly tierLowerBound?: number;
-            /**
-             * Format: double
-             * @description Upper bound for usage amount range in current SKU tier.
-             *
-             *     **NOTE**: `lineItems[n].tierUpperBound` appears only if your `lineItems[n].sku` is tiered.
-             */
-            readonly tierUpperBound?: number;
-            /**
-             * Format: int64
-             * @description Sum of the cost set for this line item. MongoDB Cloud expresses this value in cents (100ths of one US Dollar) and calculates this value as `unitPriceDollars` * `quantity` * 100.
-             */
-            readonly totalPriceCents?: number;
-            /** @description Element used to express what **quantity** this line item measures. This value can be elements of time, storage capacity, and the like. */
-            readonly unit?: string;
-            /**
-             * Format: double
-             * @description Value per **unit** for this line item expressed in US Dollars.
-             */
-            readonly unitPriceDollars?: number;
-        };
         Link: {
             /**
              * @description Uniform Resource Locator (URL) that points another API resource to which this response has some relationship. This URL often begins with `https://cloud.mongodb.com/api/atlas`.
@@ -4871,22 +4556,22 @@ export interface components {
             dayOfMonth?: number;
             /**
              * Format: int32
-             * @description Hour of the day when the scheduled window to run one online archive ends.
+             * @description Hour of the day when the scheduled window to run one online archive ends. This field uses the UTC time zone. The window must have a duration of at least two hours. If the end time is before or equal to the start time, the window extends to the next day.
              */
             endHour?: number;
             /**
              * Format: int32
-             * @description Minute of the hour when the scheduled window to run one online archive ends.
+             * @description Minute of the hour when the scheduled window to run one online archive ends. This field uses the UTC time zone. The window must have a duration of at least two hours. If the end time is before or equal to the start time, the window extends to the next day.
              */
             endMinute?: number;
             /**
              * Format: int32
-             * @description Hour of the day when the when the scheduled window to run one online archive starts.
+             * @description Hour of the day when the scheduled window to run one online archive starts. This field uses the UTC time zone.
              */
             startHour?: number;
             /**
              * Format: int32
-             * @description Minute of the hour when the scheduled window to run one online archive starts.
+             * @description Minute of the hour when the scheduled window to run one online archive starts. This field uses the UTC time zone.
              */
             startMinute?: number;
         } & {
@@ -5839,6 +5524,8 @@ export interface components {
              * @enum {string}
              */
             type: "S3_LOG_EXPORT";
+            /** @description When true, uses the legacy daily-folder path structure compatible with Push-Based Log Export: `{prefix}/{cluster}/{hostname}/{logType}/{YYYY-MM-DD}/{timestamp}-{logType}.log`. When false (default), uses the flat timestamped structure: `{prefix}/{cluster}/{hostname}/{logType}/{timestamp}-{logType}.log`. */
+            useLegacyPathStructure?: boolean | null;
         } & {
             /**
              * @description discriminator enum property added by openapi-typescript
@@ -5882,6 +5569,8 @@ export interface components {
              * @enum {string}
              */
             type: "S3_LOG_EXPORT";
+            /** @description When true, uses the legacy daily-folder path structure compatible with Push-Based Log Export: `{prefix}/{cluster}/{hostname}/{logType}/{YYYY-MM-DD}/{timestamp}-{logType}.log`. When false (default), uses the flat timestamped structure: `{prefix}/{cluster}/{hostname}/{logType}/{timestamp}-{logType}.log`. */
+            useLegacyPathStructure?: boolean | null;
         } & {
             /**
              * @description discriminator enum property added by openapi-typescript
@@ -6426,6 +6115,23 @@ export interface components {
              */
             type: "AWSLambda";
         };
+        /** @description The configuration for Azure Blob Storage connections. */
+        StreamsAzureBlobStorageConnection: Omit<components["schemas"]["StreamsConnection"], "type"> & {
+            azure?: components["schemas"]["AzureConnection"];
+            publicPrivateNetworking?: components["schemas"]["StreamsPublicPrivateLinkNetworking"];
+        } & {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "AzureBlobStorage";
+        } & {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "AzureBlobStorage";
+        };
         StreamsClusterConnection: Omit<components["schemas"]["StreamsConnection"], "type"> & {
             /** @description Unique 24-hexadecimal digit string that identifies the project that contains the configured cluster. Required if the ID does not match the project containing the streams workspace. You must first enable the organization setting. */
             clusterGroupId?: string;
@@ -6447,6 +6153,8 @@ export interface components {
         };
         /** @description Settings that define a connection to an external data store. */
         StreamsConnection: {
+            /** @description Unique identifier of the connection. */
+            readonly id?: string;
             /** @description List of one or more Uniform Resource Locators (URLs) that point to API sub-resources, related API resources, or both. RFC 5988 outlines these relationships. */
             readonly links?: components["schemas"]["Link"][];
             /** @description Human-readable label that identifies the stream connection. In the case of the Sample type, this is the name of the sample source. */
@@ -6462,8 +6170,8 @@ export interface components {
              * @description Type of the connection.
              * @enum {string}
              */
-            type?: "Kafka" | "Cluster" | "Sample" | "Https" | "AWSLambda" | "AWSKinesisDataStreams" | "SchemaRegistry";
-        } & (components["schemas"]["StreamsSampleConnection"] | components["schemas"]["StreamsClusterConnection"] | components["schemas"]["StreamsKafkaConnection"] | components["schemas"]["StreamsHttpsConnection"] | components["schemas"]["StreamsAWSLambdaConnection"] | components["schemas"]["StreamsS3Connection"] | components["schemas"]["StreamsAWSKinesisDataStreamsConnection"] | components["schemas"]["StreamsSchemaRegistryConnection"]);
+            type?: "Kafka" | "Cluster" | "Sample" | "Https" | "AzureBlobStorage" | "AWSLambda" | "AWSKinesisDataStreams" | "SchemaRegistry" | "GCPPubSub";
+        } & (components["schemas"]["StreamsSampleConnection"] | components["schemas"]["StreamsClusterConnection"] | components["schemas"]["StreamsKafkaConnection"] | components["schemas"]["StreamsHttpsConnection"] | components["schemas"]["StreamsAWSLambdaConnection"] | components["schemas"]["StreamsS3Connection"] | components["schemas"]["StreamsAWSKinesisDataStreamsConnection"] | components["schemas"]["StreamsSchemaRegistryConnection"] | components["schemas"]["StreamsAzureBlobStorageConnection"] | components["schemas"]["StreamsGCPPubSubConnection"]);
         /** @description Dead letter queue for the stream processor. */
         StreamsDLQ: {
             /** @description Name of the collection to use for the DLQ. */
@@ -6485,6 +6193,30 @@ export interface components {
             /** @description List of one or more Uniform Resource Locators (URLs) that point to API sub-resources, related API resources, or both. RFC 5988 outlines these relationships. */
             readonly links?: components["schemas"]["Link"][];
             region: components["schemas"]["BaseStreamsRegion"];
+        };
+        /** @description GCP-specific configuration for the connection. */
+        StreamsGCPConnectionConfig: {
+            /** @description List of one or more Uniform Resource Locators (URLs) that point to API sub-resources, related API resources, or both. RFC 5988 outlines these relationships. */
+            readonly links?: components["schemas"]["Link"][];
+            /** @description Email address of the Google Cloud Platform (GCP) service account that Atlas Streams uses to connect to the GCP Pub/Sub resources. */
+            serviceAccountId?: string;
+        };
+        /** @description The configuration for GCP Pub/Sub connections. */
+        StreamsGCPPubSubConnection: Omit<components["schemas"]["StreamsConnection"], "type"> & {
+            gcp?: components["schemas"]["StreamsGCPConnectionConfig"];
+            publicPrivateNetworking?: components["schemas"]["StreamsPublicPrivateLinkNetworking"];
+        } & {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "GCPPubSub";
+        } & {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "GCPPubSub";
         };
         StreamsHttpsConnection: Omit<components["schemas"]["StreamsConnection"], "type"> & {
             /** @description A map of key-value pairs that will be passed as headers for the request. */
@@ -6676,16 +6408,18 @@ export interface components {
             /**
              * @description Vendor that manages the cloud service. The list of supported vendor values is:
              *     - AWS
-             *     -- MSK for AWS MSK Kafka clusters
-             *     -- CONFLUENT for Confluent Kafka clusters on AWS
-             *     -- KINESIS for AWS Kinesis Data Streams
+             *     -- `MSK` for AWS MSK Kafka clusters
+             *     -- `CONFLUENT` for Confluent Kafka clusters on AWS
+             *     -- `KINESIS` for AWS Kinesis Data Streams
              *
              *     - Azure
-             *     -- EVENTHUB for Azure EventHub.
-             *     -- CONFLUENT for Confluent Kafka clusters on Azure
+             *     -- `EVENTHUB` for Azure EventHub.
+             *     -- `CONFLUENT` for Confluent Kafka clusters on Azure
+             *     -- `AZURE_BLOB_STORAGE` for Azure Blob Storage
              *
              *     - GCP
-             *     -- CONFLUENT for Confluent Kafka clusters on GCP
+             *     -- `CONFLUENT` for Confluent Kafka clusters on GCP
+             *     -- `PUBSUB` for Google Cloud Pub/Sub
              *
              *     **NOTE** Omitting the vendor field will default to using the GENERIC vendor.
              */
@@ -6705,6 +6439,12 @@ export interface components {
             options?: components["schemas"]["StreamsOptions"];
             /** @description Stream aggregation pipeline you want to apply to your streaming data. */
             pipeline?: components["schemas"]["Document"][];
+            /**
+             * Stream Workspace Tier
+             * @description Selected tier for the Stream Workspace. Configures Memory / VCPU allowances.
+             * @enum {string}
+             */
+            tier?: "SP50" | "SP30" | "SP10" | "SP5" | "SP2";
         };
         /** @description An atlas stream processor with optional stats. */
         StreamsProcessorWithStats: {
@@ -6734,6 +6474,28 @@ export interface components {
              * @enum {string}
              */
             tier?: "SP50" | "SP30" | "SP10" | "SP5" | "SP2";
+        };
+        /** @description Networking configuration for connections that support `PUBLIC` and `PRIVATE_LINK` access types. For GCP connections, use `PRIVATE_LINK` for GCP Private Service Connect (PSC). */
+        StreamsPublicPrivateLinkNetworking: {
+            access?: components["schemas"]["StreamsPublicPrivateLinkNetworkingAccess"];
+            /** @description List of one or more Uniform Resource Locators (URLs) that point to API sub-resources, related API resources, or both. RFC 5988 outlines these relationships. */
+            readonly links?: components["schemas"]["Link"][];
+        };
+        /** @description Information about networking access. */
+        StreamsPublicPrivateLinkNetworkingAccess: {
+            /**
+             * @description The ID of the Private Link connection. Required for `PRIVATE_LINK` type. For GCP connections using Private Service Connect (PSC), this is the PSC connection ID.
+             * @example 32b6e34b3d91647abb20e7b8
+             */
+            connectionId?: string;
+            /** @description List of one or more Uniform Resource Locators (URLs) that point to API sub-resources, related API resources, or both. RFC 5988 outlines these relationships. */
+            readonly links?: components["schemas"]["Link"][];
+            /**
+             * Networking Access Type
+             * @description Selected networking type. Either `PUBLIC` or `PRIVATE_LINK`. Defaults to `PUBLIC`. For AWS, Azure, and GCP connections, use `PRIVATE_LINK` for AWS PrivateLink, Azure Private Link, or GCP Private Service Connect (PSC) respectively.
+             * @enum {string}
+             */
+            type?: "PUBLIC" | "PRIVATE_LINK";
         };
         /** @description The configuration for S3 connections. */
         StreamsS3Connection: Omit<components["schemas"]["StreamsConnection"], "type"> & {
@@ -7469,22 +7231,22 @@ export interface components {
             dayOfWeek?: number;
             /**
              * Format: int32
-             * @description Hour of the day when the scheduled window to run one online archive ends.
+             * @description Hour of the day when the scheduled window to run one online archive ends. This field uses the UTC time zone. The window must have a duration of at least two hours. If the end time is before or equal to the start time, the window extends to the next day.
              */
             endHour?: number;
             /**
              * Format: int32
-             * @description Minute of the hour when the scheduled window to run one online archive ends.
+             * @description Minute of the hour when the scheduled window to run one online archive ends. This field uses the UTC time zone. The window must have a duration of at least two hours. If the end time is before or equal to the start time, the window extends to the next day.
              */
             endMinute?: number;
             /**
              * Format: int32
-             * @description Hour of the day when the when the scheduled window to run one online archive starts.
+             * @description Hour of the day when the scheduled window to run one online archive starts. This field uses the UTC time zone.
              */
             startHour?: number;
             /**
              * Format: int32
-             * @description Minute of the hour when the scheduled window to run one online archive starts.
+             * @description Minute of the hour when the scheduled window to run one online archive starts. This field uses the UTC time zone.
              */
             startMinute?: number;
         } & {
@@ -8112,6 +7874,7 @@ export type AzureAccountDetails = components['schemas']['AzureAccountDetails'];
 export type AzureCloudProviderContainer = components['schemas']['AzureCloudProviderContainer'];
 export type AzureCloudProviderSettings = components['schemas']['AzureCloudProviderSettings'];
 export type AzureComputeAutoScalingRules = components['schemas']['AzureComputeAutoScalingRules'];
+export type AzureConnection = components['schemas']['AzureConnection'];
 export type AzureCreateDataProcessRegionView = components['schemas']['AzureCreateDataProcessRegionView'];
 export type AzureDataProcessRegionView = components['schemas']['AzureDataProcessRegionView'];
 export type AzureHardwareSpec20240805 = components['schemas']['AzureHardwareSpec20240805'];
@@ -8123,10 +7886,6 @@ export type BaseCloudProviderInstanceSize = components['schemas']['BaseCloudProv
 export type BaseStreamsRegion = components['schemas']['BaseStreamsRegion'];
 export type BasicDbObject = components['schemas']['BasicDBObject'];
 export type BiConnector = components['schemas']['BiConnector'];
-export type BillingInvoice = components['schemas']['BillingInvoice'];
-export type BillingInvoiceMetadata = components['schemas']['BillingInvoiceMetadata'];
-export type BillingPayment = components['schemas']['BillingPayment'];
-export type BillingRefund = components['schemas']['BillingRefund'];
 export type CloudCluster = components['schemas']['CloudCluster'];
 export type CloudDatabaseUser = components['schemas']['CloudDatabaseUser'];
 export type CloudGcpProviderSettings = components['schemas']['CloudGCPProviderSettings'];
@@ -8250,7 +8009,6 @@ export type HostMetricEventTypeViewAlertable = components['schemas']['HostMetric
 export type HostMetricValue = components['schemas']['HostMetricValue'];
 export type IngestionSink = components['schemas']['IngestionSink'];
 export type IngestionSource = components['schemas']['IngestionSource'];
-export type InvoiceLineItem = components['schemas']['InvoiceLineItem'];
 export type Link = components['schemas']['Link'];
 export type LogIntegrationRequest = components['schemas']['LogIntegrationRequest'];
 export type LogIntegrationResponse = components['schemas']['LogIntegrationResponse'];
@@ -8324,10 +8082,13 @@ export type StreamProcessorAlertViewForNdsGroup = components['schemas']['StreamP
 export type StreamsAwsConnectionConfig = components['schemas']['StreamsAWSConnectionConfig'];
 export type StreamsAwsKinesisDataStreamsConnection = components['schemas']['StreamsAWSKinesisDataStreamsConnection'];
 export type StreamsAwsLambdaConnection = components['schemas']['StreamsAWSLambdaConnection'];
+export type StreamsAzureBlobStorageConnection = components['schemas']['StreamsAzureBlobStorageConnection'];
 export type StreamsClusterConnection = components['schemas']['StreamsClusterConnection'];
 export type StreamsConnection = components['schemas']['StreamsConnection'];
 export type StreamsDlq = components['schemas']['StreamsDLQ'];
 export type StreamsDataProcessRegion = components['schemas']['StreamsDataProcessRegion'];
+export type StreamsGcpConnectionConfig = components['schemas']['StreamsGCPConnectionConfig'];
+export type StreamsGcpPubSubConnection = components['schemas']['StreamsGCPPubSubConnection'];
 export type StreamsHttpsConnection = components['schemas']['StreamsHttpsConnection'];
 export type StreamsKafkaAuthentication = components['schemas']['StreamsKafkaAuthentication'];
 export type StreamsKafkaConnection = components['schemas']['StreamsKafkaConnection'];
@@ -8340,6 +8101,8 @@ export type StreamsOptions = components['schemas']['StreamsOptions'];
 export type StreamsPrivateLinkConnection = components['schemas']['StreamsPrivateLinkConnection'];
 export type StreamsProcessor = components['schemas']['StreamsProcessor'];
 export type StreamsProcessorWithStats = components['schemas']['StreamsProcessorWithStats'];
+export type StreamsPublicPrivateLinkNetworking = components['schemas']['StreamsPublicPrivateLinkNetworking'];
+export type StreamsPublicPrivateLinkNetworkingAccess = components['schemas']['StreamsPublicPrivateLinkNetworkingAccess'];
 export type StreamsS3Connection = components['schemas']['StreamsS3Connection'];
 export type StreamsSampleConnection = components['schemas']['StreamsSampleConnection'];
 export type StreamsSampleConnections = components['schemas']['StreamsSampleConnections'];
@@ -8995,6 +8758,59 @@ export interface operations {
                 };
                 content: {
                     "application/vnd.atlas.2023-02-01+json": unknown;
+                };
+            };
+            400: components["responses"]["badRequest"];
+            401: components["responses"]["unauthorized"];
+            403: components["responses"]["forbidden"];
+            404: components["responses"]["notFound"];
+            409: components["responses"]["conflict"];
+            429: components["responses"]["tooManyRequests"];
+            500: components["responses"]["internalServerError"];
+        };
+    };
+    updateGroupCluster: {
+        parameters: {
+            query?: {
+                /** @description Flag that indicates whether Application wraps the response in an `envelope` JSON object. Some API clients cannot access the HTTP response headers or status code. To remediate this, set envelope=true in the query. Endpoints that return a list of results use the results object as an envelope. Application adds the status parameter to the response body. */
+                envelope?: components["parameters"]["envelope"];
+                /** @description Flag that indicates whether the response body should be in the prettyprint format. */
+                pretty?: components["parameters"]["pretty"];
+            };
+            header?: {
+                /** @description Controls how hardware specification fields are returned in the response after cluster updates. When set to true, returns the original client-specified values and provides separate effective fields showing current operational values. When false (default), hardware specification fields show current operational values directly. Note: When using this header with autoscaling enabled, MongoDB ignores `replicationSpecs` changes during updates. To intentionally override the `replicationSpecs`, disable this header. */
+                "Use-Effective-Instance-Fields"?: boolean;
+                /** @description Controls how `replicationSpecs` fields are returned in the response. When set to `true`, stores the client's view of `replicationSpecs` and returns it in `replicationSpecs`, while the actual cluster state (including auto-scaled hardware and auto-added shards) is returned in `effectiveReplicationSpecs`. When `false` (default), `replicationSpecs` contains the actual cluster state. */
+                "Use-Effective-Fields-Replication-Specs"?: boolean;
+            };
+            path: {
+                /**
+                 * @description Unique 24-hexadecimal digit string that identifies your project. Use the [/groups](#tag/Projects/operation/listProjects) endpoint to retrieve all projects to which the authenticated user has access.
+                 *
+                 *     **NOTE**: Groups and projects are synonymous terms. Your group id is the same as your project id. For existing groups, your group/project id remains the same. The resource and corresponding endpoints use the term groups.
+                 */
+                groupId: components["parameters"]["groupId"];
+                /** @description Human-readable label that identifies the cluster. */
+                clusterName: string;
+            };
+            cookie?: never;
+        };
+        /** @description Cluster to update in the specified project. */
+        requestBody: {
+            content: {
+                "application/vnd.atlas.2024-10-23+json": components["schemas"]["ClusterDescription20240805"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    "RateLimit-Limit": components["headers"]["HeaderRateLimitLimit"];
+                    "RateLimit-Remaining": components["headers"]["HeaderRateLimitRemaining"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/vnd.atlas.2024-10-23+json": components["schemas"]["ClusterDescription20240805"];
                 };
             };
             400: components["responses"]["badRequest"];

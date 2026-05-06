@@ -236,7 +236,7 @@ export class ApiClient {
     }
 
     // DO NOT EDIT. This is auto-generated code.
-    /* eslint-disable @typescript-eslint/no-unsafe-assignment */
+    /* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-return */
     async listClusterDetails(
         options?: FetchOptions<operations["listClusterDetails"]>
     ): Promise<components["schemas"]["PaginatedOrgGroupView"]> {
@@ -357,6 +357,19 @@ export class ApiClient {
         options: FetchOptions<operations["getGroupCluster"]>
     ): Promise<components["schemas"]["ClusterDescription20240805"]> {
         const { data, error, response } = await this.client.GET(
+            "/api/atlas/v2/groups/{groupId}/clusters/{clusterName}",
+            options
+        );
+        if (error) {
+            throw ApiClientError.fromError(response, error);
+        }
+        return data;
+    }
+
+    async updateCluster(
+        options: FetchOptions<operations["updateGroupCluster"]>
+    ): Promise<components["schemas"]["ClusterDescription20240805"]> {
+        const { data, error, response } = await this.client.PATCH(
             "/api/atlas/v2/groups/{groupId}/clusters/{clusterName}",
             options
         );
@@ -870,6 +883,6 @@ export class ApiClient {
         }
         return data;
     }
-    /* eslint-enable @typescript-eslint/no-unsafe-assignment */
+    /* eslint-enable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-return */
     // DO NOT EDIT. This is auto-generated code.
 }
