@@ -393,6 +393,28 @@ export class CreateDeploymentTool extends AtlasLocalToolBase {
 }
 
 // @public (undocumented)
+export class CreateDevClusterTool extends AtlasToolBase {
+    // (undocumented)
+    argsShape: {
+        projectId: z.ZodString;
+        name: z.ZodString;
+        instanceSize: z.ZodDefault<z.ZodEnum<{
+            M10: "M10";
+            M20: "M20";
+            M30: "M30";
+        }>>;
+    };
+    // (undocumented)
+    description: string;
+    // (undocumented)
+    protected execute(input: ToolArgs<typeof CreateDevClusterTool.argsShape>): Promise<CallToolResult>;
+    // (undocumented)
+    static operationType: OperationType;
+    // (undocumented)
+    static toolName: string;
+}
+
+// @public (undocumented)
 export class CreateFreeClusterTool extends AtlasToolBase {
     // (undocumented)
     argsShape: {
@@ -404,6 +426,36 @@ export class CreateFreeClusterTool extends AtlasToolBase {
     description: string;
     // (undocumented)
     protected execute(input: ToolArgs<typeof CreateFreeClusterTool.argsShape>): Promise<CallToolResult>;
+    // (undocumented)
+    static operationType: OperationType;
+    // (undocumented)
+    static toolName: string;
+}
+
+// @public (undocumented)
+export class CreateHaClusterTool extends AtlasToolBase {
+    // (undocumented)
+    argsShape: {
+        projectId: z.ZodString;
+        name: z.ZodString;
+        instanceSize: z.ZodDefault<z.ZodEnum<{
+            M30: "M30";
+            M40: "M40";
+            M50: "M50";
+            M60: "M60";
+            M80: "M80";
+            M100: "M100";
+            M140: "M140";
+            M200: "M200";
+            M300: "M300";
+            M400: "M400";
+            M700: "M700";
+        }>>;
+    };
+    // (undocumented)
+    description: string;
+    // (undocumented)
+    protected execute(input: ToolArgs<typeof CreateHaClusterTool.argsShape>): Promise<CallToolResult>;
     // (undocumented)
     static operationType: OperationType;
     // (undocumented)
@@ -498,6 +550,36 @@ export class CreateIndexTool extends MongoDBToolBase {
             classic: "classic";
         }>;
     };
+    // (undocumented)
+    static toolName: string;
+}
+
+// @public (undocumented)
+export class CreateProdClusterTool extends AtlasToolBase {
+    // (undocumented)
+    argsShape: {
+        projectId: z.ZodString;
+        name: z.ZodString;
+        instanceSize: z.ZodDefault<z.ZodEnum<{
+            M30: "M30";
+            M40: "M40";
+            M50: "M50";
+            M60: "M60";
+            M80: "M80";
+            M100: "M100";
+            M140: "M140";
+            M200: "M200";
+            M300: "M300";
+            M400: "M400";
+            M700: "M700";
+        }>>;
+    };
+    // (undocumented)
+    description: string;
+    // (undocumented)
+    protected execute(input: ToolArgs<typeof CreateProdClusterTool.argsShape>): Promise<CallToolResult>;
+    // (undocumented)
+    static operationType: OperationType;
     // (undocumented)
     static toolName: string;
 }
@@ -1179,6 +1261,23 @@ export abstract class MongoDBToolBase extends ToolBase {
 // @public
 export type OperationType = "metadata" | "read" | "create" | "delete" | "update" | "connect";
 
+// @public (undocumented)
+export class PauseClusterTool extends AtlasToolBase {
+    // (undocumented)
+    argsShape: {
+        projectId: ZodString;
+        clusterName: ZodString;
+    };
+    // (undocumented)
+    description: string;
+    // (undocumented)
+    protected execute(input: ToolArgs<typeof PauseClusterTool.argsShape>): Promise<CallToolResult>;
+    // (undocumented)
+    static operationType: OperationType;
+    // (undocumented)
+    static toolName: string;
+}
+
 // Warning: (ae-forgotten-export) The symbol "RenameCollectionOutputSchema" needs to be exported by the entry point index.d.ts
 //
 // @public (undocumented)
@@ -1208,6 +1307,61 @@ export class RenameCollectionTool extends MongoDBToolBase {
         newCollection: z.ZodString;
         renamed: z.ZodBoolean;
     };
+    // (undocumented)
+    static toolName: string;
+}
+
+// @public (undocumented)
+export class ResumeClusterTool extends AtlasToolBase {
+    // (undocumented)
+    argsShape: {
+        projectId: ZodString;
+        clusterName: ZodString;
+    };
+    // (undocumented)
+    description: string;
+    // (undocumented)
+    protected execute(input: ToolArgs<typeof ResumeClusterTool.argsShape>): Promise<CallToolResult>;
+    // (undocumented)
+    static operationType: OperationType;
+    // (undocumented)
+    static toolName: string;
+}
+
+// @public (undocumented)
+export class ScaleClusterTool extends AtlasToolBase {
+    // (undocumented)
+    argsShape: {
+        projectId: z.ZodString;
+        clusterName: z.ZodString;
+        instanceSize: z.ZodEnum<{
+            M10: "M10";
+            M20: "M20";
+            M30: "M30";
+            M40: "M40";
+            M50: "M50";
+            M60: "M60";
+            M80: "M80";
+            M100: "M100";
+            M140: "M140";
+            M200: "M200";
+            M300: "M300";
+            M400: "M400";
+            M700: "M700";
+            M40_NVME: "M40_NVME";
+            M50_NVME: "M50_NVME";
+            M60_NVME: "M60_NVME";
+            M80_NVME: "M80_NVME";
+            M200_NVME: "M200_NVME";
+            M400_NVME: "M400_NVME";
+        }>;
+    };
+    // (undocumented)
+    description: string;
+    // (undocumented)
+    protected execute(input: ToolArgs<typeof ScaleClusterTool.argsShape>): Promise<CallToolResult>;
+    // (undocumented)
+    static operationType: OperationType;
     // (undocumented)
     static toolName: string;
 }

@@ -6,12 +6,12 @@ import type { ClusterDescription20240805 } from "../../../common/atlas/openapi.j
 
 export class ResumeClusterTool extends AtlasToolBase {
     static toolName = "atlas-resume-cluster";
-    public description = "Resume a paused MongoDB Atlas cluster to bring it back online.";
+    public description = "Resume a paused MongoDB Atlas cluster.";
     static operationType: OperationType = "update";
 
     public argsShape = {
-        projectId: AtlasArgs.projectId().describe("Atlas project ID containing the cluster"),
-        clusterName: AtlasArgs.clusterName().describe("Name of the cluster to resume"),
+        projectId: AtlasArgs.projectId().describe("Atlas project ID."),
+        clusterName: AtlasArgs.clusterName().describe("Cluster name."),
     };
 
     protected async execute({ projectId, clusterName }: ToolArgs<typeof this.argsShape>): Promise<CallToolResult> {

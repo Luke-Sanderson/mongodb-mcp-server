@@ -67,28 +67,19 @@ interface ReplicationSpec {
 
 export class ScaleClusterTool extends AtlasToolBase {
     static toolName = "atlas-scale-cluster";
-    public description =
-        "Scale a MongoDB Atlas cluster up or down by changing its instance size, and optionally adjust compute autoscaling bounds. Applies the same instance size to every region in the cluster.";
+    public description = "Scale a MongoDB Atlas cluster to a new instance size (e.g. M10 to M20).";
     static operationType: OperationType = "update";
 
     public argsShape = {
-        projectId: AtlasArgs.projectId().describe("Atlas project ID containing the cluster"),
-        clusterName: AtlasArgs.clusterName().describe("Name of the cluster to scale"),
-        instanceSize: DedicatedInstanceSize.describe("Target instance size to apply to every region"),
-        autoScalingMinInstanceSize: DedicatedInstanceSize.optional().describe(
-            "If provided, set the lower bound of compute autoscaling to this size. Set min and max equal to the target to lock the cluster at that tier."
-        ),
-        autoScalingMaxInstanceSize: DedicatedInstanceSize.optional().describe(
-            "If provided, set the upper bound of compute autoscaling to this size."
-        ),
+        projectId: AtlasArgs.projectId().describe("Atlas project ID."),
+        clusterName: AtlasArgs.clusterName().describe("Cluster name."),
+        instanceSize: DedicatedInstanceSize.describe("New instance size."),
     };
 
     protected async execute({
         projectId,
         clusterName,
         instanceSize,
-        autoScalingMinInstanceSize,
-        autoScalingMaxInstanceSize,
     }: ToolArgs<typeof this.argsShape>): Promise<CallToolResult> {
         const current = await this.apiClient.getCluster({
             params: { path: { groupId: projectId, clusterName } },
@@ -99,25 +90,18 @@ export class ScaleClusterTool extends AtlasToolBase {
         }
 
         const sourceSpecs = current.replicationSpecs as unknown as ReplicationSpec[];
-        const updatedReplicationSpecs = sourceSpecs.map((spec) =>
-            buildMutableSpec(spec, instanceSize, autoScalingMinInstanceSize, autoScalingMaxInstanceSize)
-        );
+        const updatedReplicationSpecs = sourceSpecs.map((spec) => buildMutableSpec(spec, instanceSize));
 
         await this.apiClient.updateCluster({
             params: { path: { groupId: projectId, clusterName } },
             body: { replicationSpecs: updatedReplicationSpecs } as unknown as ClusterDescription20240805,
         });
 
-        const boundsMessage =
-            autoScalingMinInstanceSize || autoScalingMaxInstanceSize
-                ? ` Autoscaling bounds set to [${autoScalingMinInstanceSize ?? "unchanged"}, ${autoScalingMaxInstanceSize ?? "unchanged"}].`
-                : "";
-
         return {
             content: [
                 {
                     type: "text",
-                    text: `Cluster "${clusterName}" scale to ${instanceSize} requested.${boundsMessage}`,
+                    text: `Cluster "${clusterName}" scale to ${instanceSize} requested.`,
                 },
             ],
         };
@@ -126,26 +110,14 @@ export class ScaleClusterTool extends AtlasToolBase {
 
 // Picks only the mutable fields Atlas accepts in a PATCH replicationSpec.
 // Read-only fields like id and zoneId from the GET response are intentionally dropped.
-function buildMutableSpec(
-    spec: ReplicationSpec,
-    instanceSize: string,
-    minInstanceSize: string | undefined,
-    maxInstanceSize: string | undefined
-): ReplicationSpec {
+function buildMutableSpec(spec: ReplicationSpec, instanceSize: string): ReplicationSpec {
     return {
         ...(spec.zoneName !== undefined ? { zoneName: spec.zoneName } : {}),
-        regionConfigs: (spec.regionConfigs ?? []).map((region) =>
-            buildMutableRegion(region, instanceSize, minInstanceSize, maxInstanceSize)
-        ),
+        regionConfigs: (spec.regionConfigs ?? []).map((region) => buildMutableRegion(region, instanceSize)),
     };
 }
 
-function buildMutableRegion(
-    region: RegionConfig,
-    instanceSize: string,
-    minInstanceSize: string | undefined,
-    maxInstanceSize: string | undefined
-): RegionConfig {
+function buildMutableRegion(region: RegionConfig, instanceSize: string): RegionConfig {
     const next: RegionConfig = {};
     if (region.providerName !== undefined) next.providerName = region.providerName;
     if (region.backingProviderName !== undefined) next.backingProviderName = region.backingProviderName;
@@ -157,34 +129,12 @@ function buildMutableRegion(
     if (region.analyticsSpecs) next.analyticsSpecs = { ...region.analyticsSpecs, instanceSize };
 
     if (region.autoScaling) {
-        next.autoScaling = mergeAutoScalingBounds(region.autoScaling, minInstanceSize, maxInstanceSize);
+        next.autoScaling = { ...region.autoScaling, compute: { ...(region.autoScaling.compute ?? {}) } };
     }
     if (region.analyticsAutoScaling) {
-        next.analyticsAutoScaling = mergeAutoScalingBounds(
-            region.analyticsAutoScaling,
-            minInstanceSize,
-            maxInstanceSize
-        );
-    }
-
-    return next;
-}
-
-function mergeAutoScalingBounds(
-    autoScaling: NonNullable<RegionConfig["autoScaling"]>,
-    minInstanceSize: string | undefined,
-    maxInstanceSize: string | undefined
-): NonNullable<RegionConfig["autoScaling"]> {
-    const compute = autoScaling.compute ?? {};
-    const next: NonNullable<RegionConfig["autoScaling"]> = {};
-
-    if (autoScaling.diskGB) next.diskGB = { ...autoScaling.diskGB };
-
-    if (compute.enabled !== undefined || minInstanceSize || maxInstanceSize) {
-        next.compute = {
-            ...compute,
-            ...(minInstanceSize ? { minInstanceSize } : {}),
-            ...(maxInstanceSize ? { maxInstanceSize } : {}),
+        next.analyticsAutoScaling = {
+            ...region.analyticsAutoScaling,
+            compute: { ...(region.analyticsAutoScaling.compute ?? {}) },
         };
     }
 

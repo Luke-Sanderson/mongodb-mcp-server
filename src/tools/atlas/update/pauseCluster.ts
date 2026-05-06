@@ -7,12 +7,12 @@ import type { ClusterDescription20240805 } from "../../../common/atlas/openapi.j
 export class PauseClusterTool extends AtlasToolBase {
     static toolName = "atlas-pause-cluster";
     public description =
-        "Pause a MongoDB Atlas cluster to stop billing for compute. The cluster must be in the IDLE state. Paused clusters retain their data and can be resumed with atlas-resume-cluster.";
+        "Pause a MongoDB Atlas cluster to stop compute billing. Cluster must be IDLE (retry if CREATING or UPDATING).";
     static operationType: OperationType = "update";
 
     public argsShape = {
-        projectId: AtlasArgs.projectId().describe("Atlas project ID containing the cluster"),
-        clusterName: AtlasArgs.clusterName().describe("Name of the cluster to pause"),
+        projectId: AtlasArgs.projectId().describe("Atlas project ID."),
+        clusterName: AtlasArgs.clusterName().describe("Cluster name."),
     };
 
     protected async execute({ projectId, clusterName }: ToolArgs<typeof this.argsShape>): Promise<CallToolResult> {

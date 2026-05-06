@@ -179,6 +179,8 @@ export class ApiClient {
     // (undocumented)
     stopStreamProcessor(options: FetchOptions<operations["stopGroupStreamProcessor"]>): Promise<void>;
     // (undocumented)
+    updateCluster(options: FetchOptions<operations["updateGroupCluster"]>): Promise<components["schemas"]["ClusterDescription20240805"]>;
+    // (undocumented)
     updateStreamConnection(options: FetchOptions<operations["updateGroupStreamConnection"]>): Promise<components["schemas"]["StreamsConnection"]>;
     // (undocumented)
     updateStreamProcessor(options: FetchOptions<operations["updateGroupStreamProcessor"]>): Promise<components["schemas"]["StreamsProcessorWithStats"]>;
